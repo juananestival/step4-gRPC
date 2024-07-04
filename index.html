@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Audio Recording</title>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      let recorder, audioChunks = [];
+
+      // Function to start recording
+      async function startRecording() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          recorder = new MediaRecorder(stream);
+          recorder.ondataavailable = (event) => audioChunks.push(event.data);
+          recorder.onstop = stopRecording;
+          recorder.start();
+
+          $("#recordButton").text("Stop Recording"); // Update button text
+        } catch (error) {
+          console.error('Error accessing microphone:', error);
+        }
+      }
+
+      // Function to stop recording
+      function stopRecording() {
+        recorder.stop();
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioChunks = []; // Reset for next recording
+
+        // Display or process the recorded audio (e.g., upload, playback)
+        const audioUrl = URL.createObjectURL(audioBlob);
+        $("#audioPlayer").attr("src", audioUrl).show();
+        $("#recordButton").text("Record Audio"); // Reset button text
+      }
+
+      // Button click handler
+      $("#recordButton").click(function() {
+        if (recorder && recorder.state === 'recording') {
+          stopRecording();
+        } else {
+          startRecording();
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <button id="recordButton">Record Audio</button>
+  <audio id="audioPlayer" controls style="display: none;"></audio>
+</body>
+</html>
